@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat</title>
+    <script type="module">
+      import { io } from 'https://cdn.socket.io/4.8.1/socket.io.esm.min.js'
+
+      const getUserName = () => {
+        const userName = localStorage.getItem('username')
+        if (userName) {
+          console.log(`User existed ${userName}`)
+          return userName
+        }
+
+        const randomUser = Math.floor(Math.random() * 101);
+        localStorage.setItem('username', randomUser)
+        return randomUser
+      }
+
+      const socket = io({
+        auth: {
+          userName: getUserName(),
+          serverOffset: 0
+        }
+      })
+
+      const form = document.getElementById('form')
+      const input = document.getElementById('message')
+      const messages = document.getElementById('messages')
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault()
+
+        console.log("clience manda")
+        if (input.value) {
+          socket.emit('chat message', input.value)
+          input.value = ''
+        }
+      })
+
+      socket.on('chat message', (msg, serverOffset, userName) => {
+        console.log("cliente recive")
+        console.log(serverOffset)
+        const item = `<li>
+          <p>${msg}</p>
+          <small>${userName}</small>
+        </li>`
+        messages.insertAdjacentHTML('beforeend', item)
+        socket.auth.serverOffset = serverOffset
+      })
+    </script>
+  </head>
+  <body>
+    <section id="chat">
+      <h1>Holi</h1>
+      <ul id="messages"></ul>
+      <form id="form">
+        <input type="text" name="message" id="message" placeholder="Type a message" autocomplete=" off" />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </body>
+</html>
